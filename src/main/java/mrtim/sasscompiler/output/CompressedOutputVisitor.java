@@ -86,7 +86,7 @@ public class CompressedOutputVisitor extends SassBaseVisitor<Void> {
     @Override
     public Void visitAssignment(SassParser.AssignmentContext ctx) {
         newLine();
-        buffer.append(ctx.IDENTIFIER().getText());
+        buffer.append(ctx.css_identifier().getText());
         buffer.append(": ");
         appendAsList(ctx.value_list().value(), " ", "; ");
         return null;

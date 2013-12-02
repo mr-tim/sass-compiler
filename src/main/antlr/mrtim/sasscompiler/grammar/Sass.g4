@@ -2,8 +2,8 @@ grammar Sass;
 
 NL : '\r'? '\n' -> skip;
 WS : (' ' | '\t' | NL) -> skip;
-COMMENT: '/*' .*? '*/';
-LINE_COMMENT : '//' ~[\r\n]* NL?;
+COMMENT: '/*' .*? '*/' -> skip;
+LINE_COMMENT : '//' ~[\r\n]* NL? -> skip;
 STRING : '"' ('\\"' | ~'"')* '"';
 URL : 'url(' ~[)]* ')';
 COMMA : ',';
@@ -12,20 +12,39 @@ LPAREN: '(';
 RPAREN: ')';
 LBRACE: '{';
 RBRACE: '}';
+LSQBRACKET: '[';
+RSQBRACKET: ']';
 DOLLAR: '$';
 EQUALS: '=';
 COLON: ':';
 SPACE: ' ';
+STAR: '*';
+BAR: '|';
+DOT: '.';
 IMPORT_KW : '@import';
 MIXIN_KW: '@mixin';
 FUNCTION_KW: '@function';
 INCLUDE_KW: '@include';
-DIMENSION : 'px';
-NUMBER : [0-9]+;
-IDENTIFIER: [a-zA-Z] [a-zA-Z0-9_-]*;
-VARIABLE: '$' IDENTIFIER;
 
-comment : COMMENT | LINE_COMMENT;
+//CSS constants
+EVEN_KW: 'even';
+ODD_KW: 'odd';
+PSEUDO_NOT_KW: ':not';
+
+DIMENSION : 'px';
+DIGITS: [0-9]+;
+PLUS: '+';
+MINUS: '-';
+IDENTIFIER: [a-zA-Z][a-zA-Z0-9_-]*;
+VARIABLE: '$' IDENTIFIER;
+TILDE: '~';
+RARROW: '>';
+PIPE: '|';
+CARET: '^';
+HASH: '#';
+PERCENT: '%';
+ID_NAME: HASH IDENTIFIER;
+CLASS_NAME: DOT IDENTIFIER;
 
 import_target: URL | STRING;
 
@@ -39,23 +58,72 @@ definition : ( MIXIN_KW | FUNCTION_KW)
              block_body
            ;
 
-include_statement : INCLUDE_KW IDENTIFIER parameter_list SEMICOLON;
+include_statement : INCLUDE_KW IDENTIFIER parameter_list? SEMICOLON;
 
 parameter_def_list: LPAREN ( variable_def (COMMA variable_def)* )? RPAREN;
 
 parameter_list: LPAREN ( parameter (COMMA parameter)* )? RPAREN;
 
-parameter: IDENTIFIER | variable_def;
+parameter: (IDENTIFIER | variable_def | value);
 
 variable_def: VARIABLE (COLON value_list)?;
+
+//selectors: L309-532
+//selector_schema: parser.cpp:309
+
+//selector_group: parser.cpp:336
+selector_list: selector_combination (COMMA selector_combination)*;
+
+//selector_combination: parser.cpp:362
+selector_combination: (simple_selector+)? ((PLUS | TILDE | RARROW) selector_combination)?;
+
+//simple_selector_sequence: parser.cpp:399
+//simple_selector_sequence: simple_selector+;
+
+//simple_selector: parser.cpp:426
+simple_selector: (ID_NAME | CLASS_NAME | STRING ) // or number
+                 | type_selector // don't think this is right...
+                 | negated_selector
+                 | pseudo_selector
+                 | attribute_selector
+                 | placeholder_selector
+               ;
+
+placeholder_selector: PERCENT IDENTIFIER;
+
+//negated_selector: parser.cpp:453
+negated_selector: PSEUDO_NOT_KW LPAREN selector_list RPAREN;
+
+//pseudo_selector: parser.cpp:464
+pseudo_selector: ((pseudo_prefix)? functional
+                    ((EVEN_KW | ODD_KW)
+                     | binomial
+                     | IDENTIFIER
+                     | STRING
+                    )?
+                  RPAREN
+                 )
+                 | pseudo_prefix IDENTIFIER;
+
+pseudo_prefix: COLON COLON?;
+
+functional: IDENTIFIER LPAREN;
+
+binomial: integer IDENTIFIER (PLUS DIGITS)?;
+
+//attribute_selector: parser.cpp:517
+attribute_selector: LSQBRACKET type_selector ((TILDE | PIPE | STAR | CARET | DOLLAR)? EQUALS (STRING | IDENTIFIER))? RSQBRACKET;
+
+type_selector: namespace_prefix? IDENTIFIER;
+
+namespace_prefix: (IDENTIFIER | STAR) BAR;
 
 variable: variable_def SEMICOLON;
 
 //parser.cpp:534
 block_body: LBRACE 
        (
-         comment
-       | import_statement // not allowed inside mixins and functions
+         import_statement // not allowed inside mixins and functions
        | assignment
        | ruleset
        | include_statement
@@ -65,23 +133,22 @@ block_body: LBRACE
 
 variable_assignment: VARIABLE COLON value_list SEMICOLON;
 
-assignment: IDENTIFIER COLON value_list SEMICOLON;
+css_identifier: MINUS? IDENTIFIER;
+
+assignment: css_identifier COLON value_list SEMICOLON;
             
 value_list: value ( value )*;
 
-value : VARIABLE | IDENTIFIER | STRING | NUMBER | value DIMENSION;
+value : (VARIABLE | IDENTIFIER | STRING | integer ( DIMENSION | PERCENT)? );
+
+integer: (PLUS | MINUS)? DIGITS;
 
 ruleset: selector_list block_body;
 
-selector_list: selector (COMMA selector)*;
-
-//parser.cpp:643, parser.cpp:1388
-selector: IDENTIFIER;
-
 sass_file : (
-              comment
-            | import_statement
+              import_statement
             | definition
             | ruleset
             | variable
+            | include_statement
             )*;
