@@ -39,6 +39,7 @@ public class Context {
     private String entryPoint;
     private Queue<File> toCompile = new ArrayDeque<>();
     private ParseTreeProperty<String> expandedSelectors = new ParseTreeProperty<>();
+    private ParseTreeProperty<String> variableValues = new ParseTreeProperty<>();
 
     private Context(Builder builder) throws SassCompilationError {
         this.entryPoint = builder.entryPoint;
@@ -87,7 +88,7 @@ public class Context {
 
     private void expandSources() {
         for (ParseTree tree: parsedSources.values()) {
-            new ExpansionVisitor(expandedSelectors).visit(tree);
+            new ExpansionVisitor(expandedSelectors, variableValues).visit(tree);
         }
     }
 
@@ -120,7 +121,7 @@ public class Context {
     }
 
     private String getCompiledOutput(ParseTree parseTree) {
-        CompressedOutputVisitor visitor = new CompressedOutputVisitor(expandedSelectors);
+        CompressedOutputVisitor visitor = new CompressedOutputVisitor(expandedSelectors, variableValues);
         visitor.visit(parseTree);
         return visitor.getOutput();
     }
