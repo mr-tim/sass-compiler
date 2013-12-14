@@ -83,7 +83,7 @@ public class ExpansionVisitor extends SassBaseVisitor<Void> {
         return FluentIterable.from(selectorCombinations).transform(new Function<Selector_combinationContext, String>() {
             @Override
             public String apply(Selector_combinationContext input) {
-                return input.getText();
+                return new SelectorCombinationVisitor().visit(input);
             }
         }).toList();
     }
