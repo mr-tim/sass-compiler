@@ -35,7 +35,7 @@ DIMENSION : 'px';
 DIGITS: [0-9]+;
 PLUS: '+';
 MINUS: '-';
-IDENTIFIER: [a-zA-Z][a-zA-Z0-9_-]*;
+IDENTIFIER: [a-zA-Z#.][a-zA-Z0-9_#.-]*;
 VARIABLE: '$' IDENTIFIER;
 TILDE: '~';
 RARROW: '>';
