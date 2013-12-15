@@ -4,7 +4,8 @@ NL : '\r'? '\n' -> skip;
 WS : (' ' | '\t' | NL) -> skip;
 COMMENT: '/*' .*? '*/' -> skip;
 LINE_COMMENT : '//' ~[\r\n]* NL? -> skip;
-STRING : '"' ('\\"' | ~'"')* '"';
+DSTRING : '"' ('\\"' | ~'"')* '"';
+SSTRING : '\'' ('\\\'' | ~'\'')* '\'';
 URL : 'url(' ~[)]* ')';
 COMMA : ',';
 SEMICOLON: ';';
@@ -46,7 +47,9 @@ PERCENT: '%';
 ID_NAME: HASH IDENTIFIER;
 CLASS_NAME: DOT IDENTIFIER;
 
-import_target: URL | STRING;
+string: DSTRING | SSTRING;
+
+import_target: URL | string;
 
 import_statement : IMPORT_KW
                    import_target ( ',' import_target )*
@@ -81,7 +84,7 @@ selector_combination: (simple_selector+)? ((PLUS | TILDE | RARROW) selector_comb
 //simple_selector_sequence: simple_selector+;
 
 //simple_selector: parser.cpp:426
-simple_selector: (ID_NAME | CLASS_NAME | STRING ) // or number
+simple_selector: (ID_NAME | CLASS_NAME | string ) // or number
                  | type_selector // don't think this is right...
                  | negated_selector
                  | pseudo_selector
@@ -99,7 +102,7 @@ pseudo_selector: ((pseudo_prefix)? functional
                     ((EVEN_KW | ODD_KW)
                      | binomial
                      | IDENTIFIER
-                     | STRING
+                     | string
                     )?
                   RPAREN
                  )
@@ -112,7 +115,7 @@ functional: IDENTIFIER LPAREN;
 binomial: integer IDENTIFIER (PLUS DIGITS)?;
 
 //attribute_selector: parser.cpp:517
-attribute_selector: LSQBRACKET type_selector ((TILDE | PIPE | STAR | CARET | DOLLAR)? EQUALS (STRING | IDENTIFIER))? RSQBRACKET;
+attribute_selector: LSQBRACKET type_selector ((TILDE | PIPE | STAR | CARET | DOLLAR)? EQUALS (string | IDENTIFIER))? RSQBRACKET;
 
 type_selector: namespace_prefix? IDENTIFIER;
 
@@ -139,7 +142,7 @@ assignment: css_identifier COLON value_list SEMICOLON;
             
 value_list: value ( value )*;
 
-value : (VARIABLE | IDENTIFIER | STRING | integer ( DIMENSION | PERCENT)? );
+value : (VARIABLE | IDENTIFIER | string | integer ( DIMENSION | PERCENT)? );
 
 integer: (PLUS | MINUS)? DIGITS;
 
