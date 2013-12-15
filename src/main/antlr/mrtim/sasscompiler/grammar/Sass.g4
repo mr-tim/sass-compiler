@@ -18,7 +18,6 @@ RSQBRACKET: ']';
 DOLLAR: '$';
 EQUALS: '=';
 COLON: ':';
-SPACE: ' ';
 STAR: '*';
 BAR: '|';
 DOT: '.';
