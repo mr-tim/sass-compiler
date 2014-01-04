@@ -70,7 +70,7 @@ public class SassSpecTest {
 
     @Parameterized.Parameters(name="{0}")
     public static List<Object[]> testFiles() {
-        assertNotNull("In order to run tests against the sass spect, the sass-spec.dir property must be set", System.getProperty("sass-spec.dir"));
+        assertNotNull("In order to run tests against the sass spec, the sass-spec.dir property must be set", System.getProperty("sass-spec.dir"));
         List<Object[]> specFiles = new ArrayList<>();
         File path = new File(System.getProperty("sass-spec.dir") + File.separator + "spec");
         String suite = "basic";
