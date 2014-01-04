@@ -2,26 +2,20 @@ package mrtim.sasscompiler;
 
 import mrtim.sasscompiler.grammar.SassLexer;
 import mrtim.sasscompiler.grammar.SassParser;
+import mrtim.sasscompiler.grammar.SassParser.Sass_fileContext;
 import mrtim.sasscompiler.output.CompressedOutputVisitor;
 import org.antlr.v4.runtime.ANTLRFileStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayDeque;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Queue;
 
 public class Context {
-
-    private Map<File,ParseTree> parsedSources;
 
     public static class Builder {
         private String entryPoint;
@@ -37,29 +31,37 @@ public class Context {
     }
 
     private String entryPoint;
-    private Queue<File> toCompile = new ArrayDeque<>();
     private ParseTreeProperty<String> expandedSelectors = new ParseTreeProperty<>();
     private ParseTreeProperty<String> variableValues = new ParseTreeProperty<>();
 
     private Context(Builder builder) throws SassCompilationError {
         this.entryPoint = builder.entryPoint;
-        addFile(entryPoint);
-    }
-
-    public void addFile(String filename) throws SassCompilationError {
-        //resolve the filename to a File, and add it to the queue of files to process
-        addFile(resolveFromSearchPath(filename));
-    }
-
-    private void addFile(File file) {
-        toCompile.add(file);
     }
 
     private File resolveFromSearchPath(String filename) throws SassCompilationError {
         File resolved = null;
-        File f = new File(filename);
-        if (f.exists()) {
-            resolved = f;
+        if (filename.startsWith("url")) {
+            //TODO: handle url imports
+        }
+        else {
+            if (filename.startsWith("\"") && filename.endsWith("\"")) {
+                filename = filename.substring(1, filename.length()-1);
+            }
+            File f = new File(filename);
+            if (f.exists()) {
+                resolved = f;
+            }
+            else {
+                File parent = new File(entryPoint).getParentFile();
+                if (!(filename.endsWith(".scss") || filename.endsWith(".css"))) {
+                    //TODO: handle relative paths to partials properly
+                    filename = "_" + filename + ".scss";
+                }
+                f = new File(parent, filename);
+                if (f.exists()) {
+                    resolved = f;
+                }
+            }
         }
         if (resolved == null) {
             throw new SassCompilationError("Unable to resolve import: " + filename);
@@ -67,37 +69,35 @@ public class Context {
         return resolved;
     }
 
+    public Sass_fileContext resolveAndParseImport(String importFilename) {
+        File importFile = resolveFromSearchPath(importFilename);
+        try {
+            return buildParseTree(importFile);
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public String compileFile() throws IOException {
         String result = null;
-        parsedSources = collectAndParseSources();
-        expandSources();
-        outputCompiledSources(entryPoint);
+        ParseTree parsedSources = collectAndParseSources(resolveFromSearchPath(entryPoint));
+        expandSources(parsedSources);
+        outputCompiledSources(entryPoint, parsedSources);
         return result;
     }
 
-    private Map<File, ParseTree> collectAndParseSources() throws IOException {
-        Map<File, ParseTree> parsedSources = new HashMap<>();
-        while (!toCompile.isEmpty()) {
-            File f = toCompile.remove();
-            ParseTree tree = buildParseTree(f);
-            parsedSources.put(f, tree);
-            collectImports(tree);
-        }
-        return parsedSources;
+    private ParseTree collectAndParseSources(File f) throws IOException {
+        ParseTree tree = buildParseTree(f);
+        new ImportVisitor(this).visit(tree);
+        return tree;
     }
 
-    private void expandSources() {
-        for (ParseTree tree: parsedSources.values()) {
-            new ExpansionVisitor(expandedSelectors, variableValues).visit(tree);
-        }
+    private void expandSources(ParseTree tree) {
+        new ExpansionVisitor(expandedSelectors, variableValues).visit(tree);
     }
 
-    private void collectImports(ParseTree tree) {
-        ParseTreeWalker walker = new ParseTreeWalker();
-        walker.walk(new ImportListener(this), tree);
-    }
-
-    private ParseTree buildParseTree(File f) throws IOException {
+    private Sass_fileContext buildParseTree(File f) throws IOException {
         ANTLRFileStream in = new ANTLRFileStream(f.getAbsolutePath());
         SassLexer lexer = new SassLexer(in);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -107,13 +107,10 @@ public class Context {
         return parser.sass_file();
     }
 
-    private void outputCompiledSources(String entryPoint) throws IOException {
-        File entryFile = new File(entryPoint);
-
+    private void outputCompiledSources(String entryPoint, ParseTree parseTree) throws IOException {
         String outputFilename = entryPoint.replaceFirst("\\.scss$", ".css");
         FileWriter fw = new FileWriter(outputFilename);
         PrintWriter out = new PrintWriter(fw);
-        ParseTree parseTree = parsedSources.get(entryFile);
         String output = getCompiledOutput(parseTree);
         out.print(output);
         out.close();

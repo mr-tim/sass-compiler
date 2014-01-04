@@ -3,6 +3,10 @@ package mrtim.sasscompiler.output;
 import com.google.common.base.Predicate;
 import mrtim.sasscompiler.BaseVisitor;
 import mrtim.sasscompiler.grammar.SassParser;
+import mrtim.sasscompiler.grammar.SassParser.AssignmentContext;
+import mrtim.sasscompiler.grammar.SassParser.Import_statementContext;
+import mrtim.sasscompiler.grammar.SassParser.RulesetContext;
+import mrtim.sasscompiler.grammar.SassParser.Selector_listContext;
 import mrtim.sasscompiler.grammar.SassParser.ValueContext;
 import mrtim.sasscompiler.grammar.SassParser.VariableContext;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -26,6 +30,20 @@ public class CompressedOutputVisitor extends BaseVisitor<Void> {
         this.variableValues = variableValues;
     }
 
+    private static final Predicate<ParseTree> HOISTABLE = new Predicate<ParseTree>() {
+        @Override
+        public boolean apply(ParseTree tree) {
+            return (tree instanceof RulesetContext || tree instanceof Selector_listContext|| tree instanceof Import_statementContext);
+        }
+    };
+
+    private static final Predicate<ParseTree> NON_HOISTABLE = new Predicate<ParseTree>() {
+        @Override
+        public boolean apply(ParseTree tree) {
+            return tree instanceof AssignmentContext;
+        }
+    };
+
     @Override
     public Void visitRuleset(SassParser.RulesetContext ctx) {
         int indentBefore = indent;
@@ -35,23 +53,14 @@ public class CompressedOutputVisitor extends BaseVisitor<Void> {
             buffer.append(" ");
             buffer.append("{");
             indent();
-            visitChildrenWhere(new Predicate<ParseTree>() {
-                @Override
-                public boolean apply(ParseTree tree) {
-                    return tree instanceof SassParser.AssignmentContext;
-                }
-            }, ctx.block_body());
+            visitChildrenWhere(NON_HOISTABLE, ctx.block_body());
             buffer.append("}");
         }
 
         if (hasHoistable(ctx.block_body())) {
-            visitChildrenWhere(new Predicate<ParseTree>() {
-                @Override
-                public boolean apply(ParseTree tree) {
-                    return (tree instanceof SassParser.RulesetContext || tree instanceof SassParser.Selector_listContext);
-                }
-            }, ctx.block_body());
+            visitChildrenWhere(HOISTABLE, ctx.block_body());
         }
+
         indent = indentBefore;
         return null;
     }
@@ -75,21 +84,11 @@ public class CompressedOutputVisitor extends BaseVisitor<Void> {
     }
 
     private boolean hasNonHoistable(ParseTree tree) {
-        return containsChildrenSatisfying(new Predicate<ParseTree>() {
-            @Override
-            public boolean apply(ParseTree tree) {
-                return tree instanceof SassParser.AssignmentContext;
-            }
-        }, tree);
+        return containsChildrenSatisfying(NON_HOISTABLE, tree);
     }
 
     private boolean hasHoistable(ParseTree tree) {
-        return containsChildrenSatisfying(new Predicate<ParseTree>() {
-            @Override
-            public boolean apply(ParseTree tree) {
-                return (tree instanceof SassParser.RulesetContext || tree instanceof SassParser.Selector_listContext);
-            }
-        }, tree);
+        return containsChildrenSatisfying(HOISTABLE, tree);
     }
 
     @Override
