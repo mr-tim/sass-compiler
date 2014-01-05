@@ -9,9 +9,7 @@ import mrtim.sasscompiler.grammar.SassParser.Selector_combinationContext;
 import mrtim.sasscompiler.grammar.SassParser.ValueContext;
 import mrtim.sasscompiler.grammar.SassParser.Variable_defContext;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
-import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
@@ -19,7 +17,7 @@ public class ExpansionVisitor extends SassBaseVisitor<Void> {
 
     private final ParseTreeProperty<String> expandedSelectors;
     private final ParseTreeProperty<String> variableValues;
-    private Stack<List<Selector_combinationContext>> selectorStack = new Stack<>();
+    private SelectorStack selectorStack = new SelectorStack();
     private Stack<Scope> scopeStack = new Stack<>();
 
     public ExpansionVisitor(ParseTreeProperty<String> expandedSelectors, ParseTreeProperty<String> variableValues) {
@@ -43,40 +41,11 @@ public class ExpansionVisitor extends SassBaseVisitor<Void> {
     @Override
     public Void visitRuleset(SassParser.RulesetContext ctx) {
         SassParser.Selector_listContext selector = ctx.selector_list();
-        selectorStack.push(ctx.selector_list().selector_combination());
-        expandedSelectors.put(selector, expandSelectorStack());
+        selectorStack.push(extractSelectors(ctx.selector_list().selector_combination()));
+        expandedSelectors.put(selector, selectorStack.expandAndJoin());
         visitChildren(ctx);
         selectorStack.pop();
         return null;
-    }
-
-    private String expandSelectorStack() {
-        Stack<List<Selector_combinationContext>> selectors = new Stack<>();
-        selectors.addAll(selectorStack);
-
-        List<String> expanded = new ArrayList<>();
-
-        while (!selectors.empty()) {
-            List<String> newPrefixes = extractSelectors(selectors.pop());
-            if (expanded.isEmpty()) {
-                expanded = newPrefixes;
-            }
-            else {
-                expanded = addPrefixes(newPrefixes, expanded);
-            }
-        }
-
-        return StringUtils.join(expanded, ", ");
-    }
-
-    private List<String> addPrefixes(List<String> newPrefixes, List<String> items) {
-        List<String> prefixed = new ArrayList<>();
-        for (String newPrefix: newPrefixes) {
-            for (String item: items) {
-                prefixed.add(newPrefix + " " + item);
-            }
-        }
-        return prefixed;
     }
 
     private List<String> extractSelectors(List<Selector_combinationContext> selectorCombinations) {
