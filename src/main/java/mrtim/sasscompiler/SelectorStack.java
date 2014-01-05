@@ -1,8 +1,9 @@
 package mrtim.sasscompiler;
 
-import org.apache.commons.lang3.StringUtils;
+import com.google.common.base.Joiner;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 
@@ -19,35 +20,47 @@ public class SelectorStack {
     }
 
     private List<String> expandSelectorStack() {
-        Stack<List<String>> selectors = new Stack<>();
+        LinkedList<List<String>> selectors = new LinkedList<>();
         selectors.addAll(selectorStack);
 
         List<String> expanded = new ArrayList<>();
 
-        while (!selectors.empty()) {
-            List<String> newPrefixes = selectors.pop();
+        for (List<String> thisLevel: selectors) {
             if (expanded.isEmpty()) {
-                expanded = newPrefixes;
+                expanded = thisLevel;
             }
             else {
-                expanded = addPrefixes(newPrefixes, expanded);
+                List<String> newExpanded = new ArrayList<>();
+                for (String parentSelector: expanded) {
+                    combineSelectorsWithParent(newExpanded, thisLevel, parentSelector);
+                }
+                expanded = newExpanded;
             }
         }
         return expanded;
     }
 
-    public String expandAndJoin() {
-        return StringUtils.join(expandSelectorStack(), ", ");
+    private void combineSelectorsWithParent(List<String> newExpanded, List<String> thisLevel, String parentSelector) {
+        for (String selector: thisLevel) {
+            newExpanded.add(combineSelectorWithParent(parentSelector, selector));
+        }
     }
 
-    private List<String> addPrefixes(List<String> newPrefixes, List<String> items) {
-        List<String> prefixed = new ArrayList<>();
-        for (String newPrefix: newPrefixes) {
-            for (String item: items) {
-                prefixed.add(newPrefix + " " + item);
-            }
+    private String combineSelectorWithParent(String parentSelector, String selector) {
+        if (isBackRef(selector)) {
+            return selector.replace("&", parentSelector);
         }
-        return prefixed;
+        else {
+            return parentSelector + " " + selector;
+        }
+    }
+
+    private boolean isBackRef(String selector) {
+        return selector.contains("&");
+    }
+
+    public String expandAndJoin() {
+        return Joiner.on(", ").join(expandSelectorStack());
     }
 
 }

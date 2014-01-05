@@ -1,6 +1,7 @@
 package mrtim.sasscompiler;
 
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import org.apache.commons.lang3.StringUtils;
@@ -50,7 +51,7 @@ public class SassSpecTest {
     }
 
     private String ignoreWhitespace(String str) {
-        return StringUtils.join(FluentIterable.from(Arrays.asList(str.split("\\n+"))).transform(new Function<String, String>() {
+        return Joiner.on("\n").join(FluentIterable.from(Arrays.asList(str.split("\\n+"))).transform(new Function<String, String>() {
             @Override
             public String apply(String input) {
                 return StringUtils.stripEnd(input, null);
@@ -60,7 +61,7 @@ public class SassSpecTest {
             public boolean apply(String input) {
                 return input.trim().length() > 0;
             }
-        }).toList(), "\n");
+        }).toList());
     }
 
     private String getFileContent(File file) throws IOException {
