@@ -1,10 +1,16 @@
 package mrtim.sasscompiler;
 
+import mrtim.sasscompiler.grammar.SassLexer;
 import mrtim.sasscompiler.grammar.SassParser.Selector_combinationContext;
 import mrtim.sasscompiler.grammar.SassParser.Simple_selectorContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class SelectorCombinationVisitor extends BaseVisitor<String> {
+
+    @Override
+    public String visitSimple_selector(Simple_selectorContext ctx) {
+        return ctx.getText();
+    }
 
     @Override
     public String visitSelector_combination(Selector_combinationContext ctx) {
@@ -19,12 +25,12 @@ public class SelectorCombinationVisitor extends BaseVisitor<String> {
     }
 
     @Override
-    public String visitSimple_selector(Simple_selectorContext ctx) {
-        return ctx.getText();
-    }
-
-    @Override
     public String visitTerminal(TerminalNode node) {
-        return node.getText();
+        if (node.getSymbol().getType() != SassLexer.COMMENT) {
+            return node.getText();
+        }
+        else {
+            return "";
+        }
     }
 }

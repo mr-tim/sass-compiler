@@ -2,6 +2,7 @@ package mrtim.sasscompiler.output;
 
 import com.google.common.base.Predicate;
 import mrtim.sasscompiler.BaseVisitor;
+import mrtim.sasscompiler.grammar.SassLexer;
 import mrtim.sasscompiler.grammar.SassParser;
 import mrtim.sasscompiler.grammar.SassParser.AssignmentContext;
 import mrtim.sasscompiler.grammar.SassParser.Import_statementContext;
@@ -12,6 +13,7 @@ import mrtim.sasscompiler.grammar.SassParser.VariableContext;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.List;
 
@@ -40,7 +42,8 @@ public class CompressedOutputVisitor extends BaseVisitor<Void> {
     private static final Predicate<ParseTree> NON_HOISTABLE = new Predicate<ParseTree>() {
         @Override
         public boolean apply(ParseTree tree) {
-            return tree instanceof AssignmentContext;
+            return tree instanceof AssignmentContext
+                    || ((tree instanceof TerminalNode) && ((TerminalNode)tree).getSymbol().getType() == SassLexer.COMMENT);
         }
     };
 
@@ -54,7 +57,7 @@ public class CompressedOutputVisitor extends BaseVisitor<Void> {
             buffer.append("{");
             indent();
             visitChildrenWhere(NON_HOISTABLE, ctx.block_body());
-            buffer.append("}");
+            buffer.append(" }");
         }
 
         if (hasHoistable(ctx.block_body())) {
@@ -96,7 +99,7 @@ public class CompressedOutputVisitor extends BaseVisitor<Void> {
         newLine();
         buffer.append(ctx.css_identifier().getText());
         buffer.append(": ");
-        visitAsList(ctx.value_list().value(), " ", "; ");
+        visitAsList(ctx.value_list().value(), " ", ";");
         return null;
     }
 
@@ -124,5 +127,14 @@ public class CompressedOutputVisitor extends BaseVisitor<Void> {
 
     public String getOutput() {
         return buffer.toString();
+    }
+
+    @Override
+    public Void visitTerminal(TerminalNode node) {
+        if (node.getSymbol().getType() == SassLexer.COMMENT) {
+            newLine();
+            buffer.append(node.getText());
+        }
+        return null;
     }
 }

@@ -2,7 +2,9 @@ grammar Sass;
 
 NL : '\r'? '\n' -> skip;
 WS : (' ' | '\t' | NL) -> skip;
-COMMENT: '/*' .*? '*/' -> skip;
+COMMENT_START: '/*';
+COMMENT_END: '*/';
+COMMENT: COMMENT_START .*? COMMENT_END;
 LINE_COMMENT : '//' ~[\r\n]* NL? -> skip;
 DSTRING : '"' ('\\"' | ~'"')* '"';
 SSTRING : '\'' ('\\\'' | ~'\'')* '\'';
@@ -125,7 +127,8 @@ variable: variable_def SEMICOLON;
 //parser.cpp:534
 block_body: LBRACE 
        (
-         import_statement // not allowed inside mixins and functions
+       COMMENT
+       | import_statement // not allowed inside mixins and functions
        | assignment
        | ruleset
        | include_statement
@@ -147,10 +150,13 @@ integer: (PLUS | MINUS)? DIGITS;
 
 ruleset: selector_list block_body;
 
-sass_file : (
-              import_statement
-            | definition
-            | ruleset
-            | variable
-            | include_statement
-            )*;
+top_level: (
+             COMMENT
+           | import_statement
+           | definition
+           | ruleset
+           | variable
+           | include_statement
+           );
+
+sass_file : top_level*;
