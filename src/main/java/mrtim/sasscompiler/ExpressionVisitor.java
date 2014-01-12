@@ -1,7 +1,7 @@
 package mrtim.sasscompiler;
 
 import mrtim.sasscompiler.grammar.SassParser.ValueContext;
-import mrtim.sasscompiler.grammar.SassParser.Value_listContext;
+import mrtim.sasscompiler.grammar.SassParser.Expression_listContext;
 
 public class ExpressionVisitor extends BaseVisitor<Void> {
 
@@ -13,8 +13,8 @@ public class ExpressionVisitor extends BaseVisitor<Void> {
     }
 
     @Override
-    public Void visitValue_list(Value_listContext ctx) {
-        visitAsList(buffer, ctx.value(), " ", "");
+    public Void visitExpression_list(Expression_listContext ctx) {
+        visitAsList(buffer, ctx.expression(), " ", "");
         return null;
     }
 

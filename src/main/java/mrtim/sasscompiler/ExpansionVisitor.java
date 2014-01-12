@@ -62,7 +62,7 @@ public class ExpansionVisitor extends SassBaseVisitor<Void> {
         //assign the variable in the scope;
         String variableName = ctx.VARIABLE().getSymbol().getText();
         ExpressionVisitor visitor = new ExpressionVisitor(currentScope());
-        visitor.visit(ctx.value_list());
+        visitor.visit(ctx.expression_list());
         currentScope().define(variableName, visitor.getValue());
         return null;
     }

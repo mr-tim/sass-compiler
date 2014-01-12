@@ -37,6 +37,7 @@ DIMENSION : 'px';
 DIGITS: [0-9]+;
 PLUS: '+';
 MINUS: '-';
+DIVIDE: '/';
 IDENTIFIER: [&a-zA-Z#.][a-zA-Z0-9_#.-]*;
 VARIABLE: '$' IDENTIFIER;
 TILDE: '~';
@@ -70,7 +71,7 @@ parameter_list: LPAREN ( parameter (COMMA parameter)* )? RPAREN;
 
 parameter: (IDENTIFIER | variable_def | value);
 
-variable_def: VARIABLE (COLON value_list)?;
+variable_def: VARIABLE (COLON expression_list)?;
 
 //selectors: L309-532
 //selector_schema: parser.cpp:309
@@ -136,15 +137,22 @@ block_body: LBRACE
        )*
        RBRACE;
 
-variable_assignment: VARIABLE COLON value_list SEMICOLON;
+variable_assignment: VARIABLE COLON expression_list SEMICOLON;
 
 css_identifier: MINUS? IDENTIFIER;
 
-assignment: css_identifier COLON value_list SEMICOLON;
+assignment: css_identifier COLON expression_list SEMICOLON;
             
-value_list: value ( value )*;
+expression_list: expression ( expression )*
+               | expression_list COMMA expression_list;
 
-value : (VARIABLE | IDENTIFIER | string | integer ( DIMENSION | PERCENT)? );
+expression: value
+          | expression operator expression
+          | LPAREN expression_list RPAREN;
+
+operator: PLUS | MINUS | DIVIDE | STAR;
+
+value : (VARIABLE | IDENTIFIER | string | integer ( DIMENSION | PERCENT)? | URL);
 
 integer: (PLUS | MINUS)? DIGITS;
 

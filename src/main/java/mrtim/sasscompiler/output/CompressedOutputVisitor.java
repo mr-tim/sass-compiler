@@ -99,7 +99,7 @@ public class CompressedOutputVisitor extends BaseVisitor<Void> {
         newLine();
         buffer.append(ctx.css_identifier().getText());
         buffer.append(": ");
-        visitAsList(ctx.value_list().value(), " ", ";");
+        visitAsList(ctx.expression_list().expression(), " ", ";");
         return null;
     }
 
