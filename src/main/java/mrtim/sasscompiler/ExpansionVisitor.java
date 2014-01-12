@@ -4,6 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import mrtim.sasscompiler.grammar.SassBaseVisitor;
 import mrtim.sasscompiler.grammar.SassParser;
+import mrtim.sasscompiler.grammar.SassParser.DefinitionContext;
 import mrtim.sasscompiler.grammar.SassParser.Sass_fileContext;
 import mrtim.sasscompiler.grammar.SassParser.Selector_combinationContext;
 import mrtim.sasscompiler.grammar.SassParser.ValueContext;
@@ -55,6 +56,17 @@ public class ExpansionVisitor extends SassBaseVisitor<Void> {
                 return new SelectorCombinationVisitor().visit(input);
             }
         }).toList();
+    }
+
+    @Override
+    public Void visitDefinition(DefinitionContext ctx) {
+        if (ctx.MIXIN_KW() != null) {
+            //skip definition of mixins
+            return null;
+        }
+        else {
+            return super.visitDefinition(ctx);
+        }
     }
 
     @Override

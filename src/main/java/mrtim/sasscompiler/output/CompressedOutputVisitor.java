@@ -5,6 +5,7 @@ import mrtim.sasscompiler.BaseVisitor;
 import mrtim.sasscompiler.grammar.SassLexer;
 import mrtim.sasscompiler.grammar.SassParser;
 import mrtim.sasscompiler.grammar.SassParser.AssignmentContext;
+import mrtim.sasscompiler.grammar.SassParser.DefinitionContext;
 import mrtim.sasscompiler.grammar.SassParser.Import_statementContext;
 import mrtim.sasscompiler.grammar.SassParser.RulesetContext;
 import mrtim.sasscompiler.grammar.SassParser.Selector_listContext;
@@ -101,6 +102,17 @@ public class CompressedOutputVisitor extends BaseVisitor<Void> {
         buffer.append(": ");
         visitAsList(ctx.expression_list().expression(), " ", ";");
         return null;
+    }
+
+    @Override
+    public Void visitDefinition(DefinitionContext ctx) {
+        if (ctx.MIXIN_KW() != null) {
+            //skip definition of mixins
+            return null;
+        }
+        else {
+            return super.visitDefinition(ctx);
+        }
     }
 
     private <T extends ParserRuleContext> void visitAsList(List<T> items, String seperator, String terminal) {
