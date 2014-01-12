@@ -65,13 +65,13 @@ definition : ( MIXIN_KW | FUNCTION_KW)
 
 include_statement : INCLUDE_KW IDENTIFIER parameter_list? SEMICOLON;
 
-parameter_def_list: LPAREN ( variable_def (COMMA variable_def)* )? RPAREN;
+parameter_def_list: LPAREN ( COMMENT? variable_def COMMENT? (COMMA COMMENT? variable_def COMMENT?)* )? RPAREN;
 
 parameter_list: LPAREN ( parameter (COMMA parameter)* )? RPAREN;
 
 parameter: (IDENTIFIER | variable_def | value);
 
-variable_def: VARIABLE (COLON expression_list)?;
+variable_def: VARIABLE (COMMENT? COLON COMMENT? expression_list)?;
 
 //selectors: L309-532
 //selector_schema: parser.cpp:309
@@ -152,7 +152,9 @@ expression: value
 
 operator: PLUS | MINUS | DIVIDE | STAR;
 
-value : (VARIABLE | IDENTIFIER | string | integer ( DIMENSION | PERCENT)? | URL);
+value : (VARIABLE | IDENTIFIER | string | integer ( DIMENSION | PERCENT)? | URL | builtin_call);
+
+builtin_call: IDENTIFIER parameter_list;
 
 integer: (PLUS | MINUS)? DIGITS;
 
