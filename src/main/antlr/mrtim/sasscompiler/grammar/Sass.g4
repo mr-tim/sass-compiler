@@ -38,7 +38,7 @@ DIGITS: [0-9]+;
 PLUS: '+';
 MINUS: '-';
 DIVIDE: '/';
-IDENTIFIER: [&a-zA-Z#.][a-zA-Z0-9_#.-]*;
+IDENTIFIER: [&a-zA-Z][a-zA-Z0-9_-]*;
 VARIABLE: '$' IDENTIFIER;
 TILDE: '~';
 RARROW: '>';
@@ -80,19 +80,27 @@ variable_def: VARIABLE (COMMENT? COLON COMMENT? expression_list)?;
 selector_list: selector_combination (COMMA selector_combination)*;
 
 //selector_combination: parser.cpp:362
-selector_combination: (simple_selector+)? ((PLUS | TILDE | RARROW) selector_combination)?;
+selector_combination: simple_selector (selector_combinator selector_combination)*
+                    | non_blank_combinator simple_selector (selector_combinator selector_combination)*;
+
+non_blank_combinator : (PLUS | TILDE | RARROW);
+
+selector_combinator : (non_blank_combinator | );
 
 //simple_selector_sequence: parser.cpp:399
 //simple_selector_sequence: simple_selector+;
 
 //simple_selector: parser.cpp:426
-simple_selector: (ID_NAME | CLASS_NAME | string ) // or number
-                 | type_selector // don't think this is right...
-                 | negated_selector
-                 | pseudo_selector
-                 | attribute_selector
-                 | placeholder_selector
-               ;
+simple_selector: tag (simple_selector_element)*
+               | simple_selector_element+;
+
+tag: IDENTIFIER;
+
+simple_selector_element: (ID_NAME | CLASS_NAME)
+                       | negated_selector
+                       | pseudo_selector
+                       | attribute_selector
+                       | placeholder_selector;
 
 placeholder_selector: PERCENT IDENTIFIER;
 
