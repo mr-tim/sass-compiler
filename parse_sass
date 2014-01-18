@@ -1,0 +1,7 @@
+#!/bin/bash
+
+mvn compile
+
+grun="java -cp /usr/local/Cellar/antlr/4.1/antlr-4.1-complete.jar:target/classes org.antlr.v4.runtime.misc.TestRig"
+
+$grun mrtim.sasscompiler.grammar.Sass sass_file -tokens -tree -gui $1
