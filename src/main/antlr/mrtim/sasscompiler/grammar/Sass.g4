@@ -33,7 +33,7 @@ EVEN_KW: 'even';
 ODD_KW: 'odd';
 PSEUDO_NOT_KW: ':not';
 
-DIMENSION : 'px';
+DIMENSION : 'px' | 'pt' | 'em' | 'en' | 'ex';
 DIGITS: [0-9]+;
 PLUS: '+';
 MINUS: '-';
@@ -161,7 +161,13 @@ expression: expression STAR expression
           | value
           | LPAREN expression_list RPAREN;
 
-value : (VARIABLE | IDENTIFIER | string | integer ( DIMENSION | PERCENT)? | URL | builtin_call);
+value : (VARIABLE | IDENTIFIER | string | number | dimension | percentage | URL | builtin_call);
+
+number: integer;
+
+dimension: number DIMENSION;
+
+percentage: number PERCENT;
 
 builtin_call: IDENTIFIER parameter_list;
 
