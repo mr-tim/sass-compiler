@@ -9,6 +9,16 @@ public class StringExpressionValue extends AbstractExpressionValue {
     }
 
     @Override
+    protected ExpressionValue operateOnString(Operator operator, StringExpressionValue other) {
+        switch (operator) {
+            case ADD:
+                return new StringExpressionValue(value + other.stringValue());
+            default:
+                return throwUnsupportedOperation(operator, other);
+        }
+    }
+
+    @Override
     public String stringValue() {
         return value;
     }

@@ -2,16 +2,18 @@ package mrtim.sasscompiler.output;
 
 import com.google.common.base.Predicate;
 import mrtim.sasscompiler.BaseVisitor;
+import mrtim.sasscompiler.expr.ExpressionValue;
 import mrtim.sasscompiler.grammar.SassLexer;
 import mrtim.sasscompiler.grammar.SassParser;
 import mrtim.sasscompiler.grammar.SassParser.AssignmentContext;
 import mrtim.sasscompiler.grammar.SassParser.DefinitionContext;
+import mrtim.sasscompiler.grammar.SassParser.Expression_listContext;
 import mrtim.sasscompiler.grammar.SassParser.Import_statementContext;
 import mrtim.sasscompiler.grammar.SassParser.RulesetContext;
 import mrtim.sasscompiler.grammar.SassParser.Selector_listContext;
-import mrtim.sasscompiler.grammar.SassParser.ValueContext;
 import mrtim.sasscompiler.grammar.SassParser.VariableContext;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -25,12 +27,12 @@ public class CompressedOutputVisitor extends BaseVisitor<Void> {
     private static final String INDENTATION = "  ";
 
     private final ParseTreeProperty<String> expandedSelectors;
-    private final ParseTreeProperty<String> variableValues;
+    private final ParseTreeProperty<ExpressionValue> expressionValues;
 
     public CompressedOutputVisitor(ParseTreeProperty<String> expandedSelectors,
-                                   ParseTreeProperty<String> variableValues) {
+                                   ParseTreeProperty<ExpressionValue> expressionValues) {
         this.expandedSelectors = expandedSelectors;
-        this.variableValues = variableValues;
+        this.expressionValues = expressionValues;
     }
 
     private static final Predicate<ParseTree> HOISTABLE = new Predicate<ParseTree>() {
@@ -75,18 +77,6 @@ public class CompressedOutputVisitor extends BaseVisitor<Void> {
         return null;
     }
 
-    @Override
-    public Void visitValue(ValueContext ctx) {
-        if (ctx.VARIABLE() != null) {
-            buffer.append(variableValues.get(ctx));
-            return null;
-        }
-        else {
-            buffer.append(ctx.getText());
-            return null;
-        }
-    }
-
     private boolean hasNonHoistable(ParseTree tree) {
         return containsChildrenSatisfying(NON_HOISTABLE, tree);
     }
@@ -100,7 +90,8 @@ public class CompressedOutputVisitor extends BaseVisitor<Void> {
         newLine();
         buffer.append(ctx.css_identifier().getText());
         buffer.append(": ");
-        visitAsList(ctx.expression_list().expression(), " ", ";");
+        visit(ctx.expression_list());
+        buffer.append(";");
         return null;
     }
 
@@ -147,6 +138,12 @@ public class CompressedOutputVisitor extends BaseVisitor<Void> {
             newLine();
             buffer.append(node.getText());
         }
+        return null;
+    }
+
+    @Override
+    public Void visitExpression_list(@NotNull Expression_listContext ctx) {
+        buffer.append(expressionValues.get(ctx).stringValue());
         return null;
     }
 }

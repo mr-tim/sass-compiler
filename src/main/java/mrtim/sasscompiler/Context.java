@@ -1,5 +1,6 @@
 package mrtim.sasscompiler;
 
+import mrtim.sasscompiler.expr.ExpressionValue;
 import mrtim.sasscompiler.grammar.SassLexer;
 import mrtim.sasscompiler.grammar.SassParser;
 import mrtim.sasscompiler.grammar.SassParser.Sass_fileContext;
@@ -32,7 +33,7 @@ public class Context {
 
     private String entryPoint;
     private ParseTreeProperty<String> expandedSelectors = new ParseTreeProperty<>();
-    private ParseTreeProperty<String> variableValues = new ParseTreeProperty<>();
+    private ParseTreeProperty<ExpressionValue> evaluatedExpressions = new ParseTreeProperty<>();
 
     private Context(Builder builder) throws SassCompilationError {
         this.entryPoint = builder.entryPoint;
@@ -94,7 +95,7 @@ public class Context {
     }
 
     private void expandSources(ParseTree tree) {
-        new ExpansionVisitor(expandedSelectors, variableValues).visit(tree);
+        new ExpansionVisitor(expandedSelectors, evaluatedExpressions).visit(tree);
     }
 
     private Sass_fileContext buildParseTree(File f) throws IOException {
@@ -118,7 +119,7 @@ public class Context {
     }
 
     private String getCompiledOutput(ParseTree parseTree) {
-        CompressedOutputVisitor visitor = new CompressedOutputVisitor(expandedSelectors, variableValues);
+        CompressedOutputVisitor visitor = new CompressedOutputVisitor(expandedSelectors, evaluatedExpressions);
         visitor.visit(parseTree);
         return visitor.getOutput();
     }

@@ -2,13 +2,15 @@ package mrtim.sasscompiler;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
+import mrtim.sasscompiler.expr.ExpressionValue;
 import mrtim.sasscompiler.grammar.SassBaseVisitor;
 import mrtim.sasscompiler.grammar.SassParser;
 import mrtim.sasscompiler.grammar.SassParser.DefinitionContext;
+import mrtim.sasscompiler.grammar.SassParser.Expression_listContext;
 import mrtim.sasscompiler.grammar.SassParser.Sass_fileContext;
 import mrtim.sasscompiler.grammar.SassParser.Selector_combinationContext;
-import mrtim.sasscompiler.grammar.SassParser.ValueContext;
 import mrtim.sasscompiler.grammar.SassParser.Variable_defContext;
+import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
 import java.util.List;
@@ -17,13 +19,13 @@ import java.util.Stack;
 public class ExpansionVisitor extends SassBaseVisitor<Void> {
 
     private final ParseTreeProperty<String> expandedSelectors;
-    private final ParseTreeProperty<String> variableValues;
+    private final ParseTreeProperty<ExpressionValue> evaluatedExpressions;
     private SelectorStack selectorStack = new SelectorStack();
     private Stack<Scope> scopeStack = new Stack<>();
 
-    public ExpansionVisitor(ParseTreeProperty<String> expandedSelectors, ParseTreeProperty<String> variableValues) {
+    public ExpansionVisitor(ParseTreeProperty<String> expandedSelectors, ParseTreeProperty<ExpressionValue> evaluatedExpressions) {
         this.expandedSelectors = expandedSelectors;
-        this.variableValues = variableValues;
+        this.evaluatedExpressions = evaluatedExpressions;
     }
 
     @Override
@@ -79,14 +81,9 @@ public class ExpansionVisitor extends SassBaseVisitor<Void> {
     }
 
     @Override
-    public Void visitValue(ValueContext ctx) {
-        if (ctx.VARIABLE() != null) {
-            variableValues.put(ctx, currentScope().get(ctx.getText()).stringValue());
-            return null;
-        }
-        else {
-            return super.visitValue(ctx);
-        }
+    public Void visitExpression_list(@NotNull Expression_listContext ctx) {
+        evaluatedExpressions.put(ctx, new ExpressionVisitor(currentScope()).visit(ctx));
+        return null;
     }
 
     private Scope currentScope() {
