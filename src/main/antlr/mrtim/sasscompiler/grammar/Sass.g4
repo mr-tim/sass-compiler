@@ -154,11 +154,12 @@ assignment: css_identifier COLON expression_list SEMICOLON;
 expression_list: expression ( expression )*
                | expression_list COMMA expression_list;
 
-expression: value
-          | expression operator expression
+expression: expression STAR expression
+          | expression DIVIDE expression
+          | expression PLUS expression
+          | expression MINUS expression
+          | value
           | LPAREN expression_list RPAREN;
-
-operator: PLUS | MINUS | DIVIDE | STAR;
 
 value : (VARIABLE | IDENTIFIER | string | integer ( DIMENSION | PERCENT)? | URL | builtin_call);
 
