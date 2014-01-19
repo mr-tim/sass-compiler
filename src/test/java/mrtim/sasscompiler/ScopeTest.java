@@ -1,5 +1,7 @@
 package mrtim.sasscompiler;
 
+import mrtim.sasscompiler.expr.ExpressionValue;
+import mrtim.sasscompiler.expr.StringExpressionValue;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -18,7 +20,7 @@ public class ScopeTest {
     public void testValueDefinedInRootScope() {
         Scope rootScope = new Scope();
         Scope scope = new Scope(rootScope);
-        rootScope.define("foo", "bar");
+        rootScope.define("foo", s("bar"));
         assertTrue("Expected variable to be defined in root scope", rootScope.isDefined("foo"));
         assertTrue("Expected variable to be define in child scope", scope.isDefined("foo"));
     }
@@ -27,7 +29,7 @@ public class ScopeTest {
     public void testNewChildDefinitionsDontTouchRootScope() {
         Scope rootScope = new Scope();
         Scope childScope = new Scope();
-        childScope.define("name", "tim");
+        childScope.define("name", s("tim"));
         assertTrue("Expected variable to be defined in child scope", childScope.isDefined("name"));
         assertFalse("Variable should not be define in root scope", rootScope.isDefined("name"));
     }
@@ -35,14 +37,17 @@ public class ScopeTest {
     @Test
     public void testChildDefinitionsDontOverrideRootScope() {
         Scope rootScope = new Scope();
-        rootScope.define("name", "tim");
+        rootScope.define("name", s("tim"));
         Scope childScope = new Scope();
-        childScope.define("name", "bob");
+        childScope.define("name", s("bob"));
         assertTrue("Expected variable to be define in child scope", childScope.isDefined("name"));
         assertTrue("Expected variable to be defined in root scope", rootScope.isDefined("name"));
-        assertEquals("Expected variable in root scope to be unchanged when redefined in child scope", "tim", rootScope.get("name"));
-        assertEquals("Incorrect variable value in child scope", "bob", childScope.get("name"));
+        assertEquals("Expected variable in root scope to be unchanged when redefined in child scope", "tim", rootScope.get("name").stringValue());
+        assertEquals("Incorrect variable value in child scope", "bob", childScope.get("name").stringValue());
     }
 
+    private ExpressionValue s(String value) {
+        return new StringExpressionValue(value);
+    }
 
 }

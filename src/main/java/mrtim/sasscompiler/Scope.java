@@ -1,5 +1,7 @@
 package mrtim.sasscompiler;
 
+import mrtim.sasscompiler.expr.ExpressionValue;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -7,7 +9,7 @@ public class Scope {
 
     private final Scope parentScope;
 
-    private Map<String, String> locals = new HashMap<>();
+    private Map<String, ExpressionValue> locals = new HashMap<>();
 
     public Scope() {
         parentScope = null;
@@ -21,11 +23,11 @@ public class Scope {
         return (parentScope != null && parentScope.isDefined(variableName)) || locals.containsKey(variableName);
     }
 
-    public void define(String name, String value) {
+    public void define(String name, ExpressionValue value) {
         locals.put(name, value);
     }
 
-    public String get(String name) {
+    public ExpressionValue get(String name) {
         if (isDefined(name)) {
             if (locals.containsKey(name)) {
                 return locals.get(name);

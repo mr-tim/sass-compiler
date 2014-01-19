@@ -21,7 +21,7 @@ public class ExpressionVisitor extends BaseVisitor<Void> {
     @Override
     public Void visitValue(ValueContext ctx) {
         if (ctx.VARIABLE() != null) {
-            buffer.append(scope.get(ctx.VARIABLE().getText()));
+            buffer.append(scope.get(ctx.VARIABLE().getText()).stringValue());
         }
         else {
             buffer.append(ctx.getText());
