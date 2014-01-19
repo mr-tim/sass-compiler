@@ -4,6 +4,11 @@ import com.google.common.base.Objects;
 
 public abstract class AbstractExpressionValue implements ExpressionValue {
 
+    @Override
+    public ExpressionValue operate(Operator operator, ExpressionValue other) {
+        return throwUnsupportedOperation(operator, other);
+    }
+
     protected ExpressionValue throwUnsupportedOperation(Operator operator, ExpressionValue other) {
         throw new UnsupportedOperationException(operationDescription(operator, other));
     }

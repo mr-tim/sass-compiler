@@ -2,7 +2,6 @@ package mrtim.sasscompiler;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
-import mrtim.sasscompiler.expr.StringExpressionValue;
 import mrtim.sasscompiler.grammar.SassBaseVisitor;
 import mrtim.sasscompiler.grammar.SassParser;
 import mrtim.sasscompiler.grammar.SassParser.DefinitionContext;
@@ -75,8 +74,7 @@ public class ExpansionVisitor extends SassBaseVisitor<Void> {
         //assign the variable in the scope;
         String variableName = ctx.VARIABLE().getSymbol().getText();
         ExpressionVisitor visitor = new ExpressionVisitor(currentScope());
-        visitor.visit(ctx.expression_list());
-        currentScope().define(variableName, new StringExpressionValue(visitor.getValue()));
+        currentScope().define(variableName, visitor.visit(ctx.expression_list()));
         return null;
     }
 
