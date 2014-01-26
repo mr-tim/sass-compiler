@@ -5,14 +5,16 @@ import mrtim.sasscompiler.expr.DivisionExpression;
 import mrtim.sasscompiler.expr.ExpressionValue;
 import mrtim.sasscompiler.expr.ExpressionValue.Operator;
 import mrtim.sasscompiler.expr.ListExpressionValue;
+import mrtim.sasscompiler.expr.MultListExpressionValue;
 import mrtim.sasscompiler.expr.NumberExpressionValue;
 import mrtim.sasscompiler.expr.PercentageExpressionValue;
 import mrtim.sasscompiler.expr.StringExpressionValue;
 import mrtim.sasscompiler.grammar.SassParser.DimensionContext;
 import mrtim.sasscompiler.grammar.SassParser.DivideExpressionContext;
-import mrtim.sasscompiler.grammar.SassParser.Expression_listContext;
+import mrtim.sasscompiler.grammar.SassParser.ExpressionListContext;
 import mrtim.sasscompiler.grammar.SassParser.ListExpressionContext;
 import mrtim.sasscompiler.grammar.SassParser.MinusExpressionContext;
+import mrtim.sasscompiler.grammar.SassParser.MultiExpressionListContext;
 import mrtim.sasscompiler.grammar.SassParser.MultiplyExpressionContext;
 import mrtim.sasscompiler.grammar.SassParser.NumberContext;
 import mrtim.sasscompiler.grammar.SassParser.ParenExpressionContext;
@@ -34,7 +36,7 @@ public class ExpressionVisitor extends BaseVisitor<ExpressionValue> {
     }
 
     @Override
-    public ExpressionValue visitExpression_list(Expression_listContext ctx) {
+    public ExpressionValue visitExpressionList(ExpressionListContext ctx) {
         if (ctx.expression().size() == 1) {
             return visit(ctx.expression(0));
         }
@@ -45,6 +47,11 @@ public class ExpressionVisitor extends BaseVisitor<ExpressionValue> {
             }
             return new ListExpressionValue(expressions);
         }
+    }
+
+    @Override
+    public ExpressionValue visitMultiExpressionList(@NotNull MultiExpressionListContext ctx) {
+        return new MultListExpressionValue(visit(ctx.expression_list(0)), visit(ctx.expression_list(1)));
     }
 
     @Override

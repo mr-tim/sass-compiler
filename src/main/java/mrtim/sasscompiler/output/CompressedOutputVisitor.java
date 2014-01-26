@@ -7,8 +7,9 @@ import mrtim.sasscompiler.grammar.SassLexer;
 import mrtim.sasscompiler.grammar.SassParser;
 import mrtim.sasscompiler.grammar.SassParser.AssignmentContext;
 import mrtim.sasscompiler.grammar.SassParser.DefinitionContext;
-import mrtim.sasscompiler.grammar.SassParser.Expression_listContext;
+import mrtim.sasscompiler.grammar.SassParser.ExpressionListContext;
 import mrtim.sasscompiler.grammar.SassParser.Import_statementContext;
+import mrtim.sasscompiler.grammar.SassParser.MultiExpressionListContext;
 import mrtim.sasscompiler.grammar.SassParser.RulesetContext;
 import mrtim.sasscompiler.grammar.SassParser.Selector_listContext;
 import mrtim.sasscompiler.grammar.SassParser.VariableContext;
@@ -142,7 +143,16 @@ public class CompressedOutputVisitor extends BaseVisitor<Void> {
     }
 
     @Override
-    public Void visitExpression_list(@NotNull Expression_listContext ctx) {
+    public Void visitExpressionList(@NotNull ExpressionListContext ctx) {
+        return outputExpressionValue(ctx);
+    }
+
+    @Override
+    public Void visitMultiExpressionList(@NotNull MultiExpressionListContext ctx) {
+        return outputExpressionValue(ctx);
+    }
+
+    public Void outputExpressionValue(ParseTree ctx) {
         buffer.append(expressionValues.get(ctx).stringValue());
         return null;
     }

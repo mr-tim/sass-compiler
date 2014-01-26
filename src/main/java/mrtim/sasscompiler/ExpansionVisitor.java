@@ -6,11 +6,13 @@ import mrtim.sasscompiler.expr.ExpressionValue;
 import mrtim.sasscompiler.grammar.SassBaseVisitor;
 import mrtim.sasscompiler.grammar.SassParser;
 import mrtim.sasscompiler.grammar.SassParser.DefinitionContext;
-import mrtim.sasscompiler.grammar.SassParser.Expression_listContext;
+import mrtim.sasscompiler.grammar.SassParser.ExpressionListContext;
+import mrtim.sasscompiler.grammar.SassParser.MultiExpressionListContext;
 import mrtim.sasscompiler.grammar.SassParser.Sass_fileContext;
 import mrtim.sasscompiler.grammar.SassParser.Selector_combinationContext;
 import mrtim.sasscompiler.grammar.SassParser.Variable_defContext;
 import org.antlr.v4.runtime.misc.NotNull;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
 import java.util.List;
@@ -81,7 +83,16 @@ public class ExpansionVisitor extends SassBaseVisitor<Void> {
     }
 
     @Override
-    public Void visitExpression_list(@NotNull Expression_listContext ctx) {
+    public Void visitExpressionList(@NotNull ExpressionListContext ctx) {
+        return evaluate(ctx);
+    }
+
+    @Override
+    public Void visitMultiExpressionList(@NotNull MultiExpressionListContext ctx) {
+        return evaluate(ctx);
+    }
+
+    private Void evaluate(ParseTree ctx) {
         evaluatedExpressions.put(ctx, new ExpressionVisitor(currentScope()).visit(ctx));
         return null;
     }

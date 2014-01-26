@@ -151,8 +151,8 @@ css_identifier: MINUS? IDENTIFIER;
 
 assignment: css_identifier COLON expression_list SEMICOLON;
             
-expression_list: expression ( expression )*
-               | expression_list COMMA expression_list;
+expression_list: expression ( expression )*              # ExpressionList
+               | expression_list COMMA expression_list   # MultiExpressionList;
 
 expression: expression STAR expression      # MultiplyExpression
           | expression DIVIDE expression    # DivideExpression
