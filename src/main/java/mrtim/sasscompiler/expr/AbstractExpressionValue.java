@@ -18,6 +18,9 @@ public abstract class AbstractExpressionValue implements ExpressionValue {
         else if (other instanceof DimensionExpressionValue) {
             return operateOnDimension(operator, (DimensionExpressionValue) other);
         }
+        else if (other instanceof DivisionExpression) {
+            return operateOnDivision(operator, (DivisionExpression) other);
+        }
         return throwUnsupportedOperation(operator, other);
     }
 
@@ -35,6 +38,10 @@ public abstract class AbstractExpressionValue implements ExpressionValue {
 
     protected ExpressionValue operateOnDimension(Operator operator, DimensionExpressionValue other) {
         return throwUnsupportedOperation(operator, other);
+    }
+
+    protected ExpressionValue operateOnDivision(Operator operator, DivisionExpression other) {
+        return operate(operator, other.evaluate());
     }
 
     protected ExpressionValue throwUnsupportedOperation(Operator operator, ExpressionValue other) {

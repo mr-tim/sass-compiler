@@ -5,6 +5,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class ListExpressionValue extends AbstractExpressionValue {
@@ -23,5 +24,16 @@ public class ListExpressionValue extends AbstractExpressionValue {
                 return input.stringValue();
             }
         }), " ");
+    }
+
+    public ExpressionValue prepend(ExpressionValue numberExpressionValue) {
+        ExpressionValue head = expressions.get(0);
+        if (head instanceof DivisionExpression) {
+            head = ((DivisionExpression) head).evaluate();
+        }
+        List<ExpressionValue> newList = new LinkedList<>();
+        newList.add(new StringExpressionValue(numberExpressionValue.stringValue() + head.stringValue()));
+        newList.addAll(expressions.subList(1, expressions.size()));
+        return new ListExpressionValue(newList);
     }
 }

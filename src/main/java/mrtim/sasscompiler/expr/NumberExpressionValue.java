@@ -6,19 +6,21 @@ import java.text.DecimalFormat;
 
 public class NumberExpressionValue extends AbstractExpressionValue {
 
-    private BigDecimal value;
+    private final BigDecimal value;
+    private final boolean evaluated;
 
-    public NumberExpressionValue(BigDecimal value) {
+    public NumberExpressionValue(BigDecimal value, boolean evaluated) {
         this.value = value;
+        this.evaluated = evaluated;
     }
 
     @Override
     protected ExpressionValue operateOnNumber(Operator operator, NumberExpressionValue other) {
         switch (operator) {
-            case ADD: return new NumberExpressionValue(value.add(other.value));
-            case SUBTRACT: return new NumberExpressionValue(value.subtract(other.value));
-            case MULTIPLY: return new NumberExpressionValue(value.multiply(other.value));
-            case DIVIDE: return new NumberExpressionValue(value.divide(other.value, 10, RoundingMode.HALF_UP));
+            case ADD: return new NumberExpressionValue(value.add(other.value), true);
+            case SUBTRACT: return new NumberExpressionValue(value.subtract(other.value), true);
+            case MULTIPLY: return new NumberExpressionValue(value.multiply(other.value), true);
+            case DIVIDE: return new NumberExpressionValue(value.divide(other.value, 10, RoundingMode.HALF_UP), true);
             default:
                 return throwUnsupportedOperation(operator, other);
         }
@@ -27,7 +29,7 @@ public class NumberExpressionValue extends AbstractExpressionValue {
     @Override
     protected ExpressionValue operateOnList(Operator operator, ListExpressionValue other) {
         switch (operator) {
-            case ADD: return new StringExpressionValue(stringValue()+other.stringValue());
+            case ADD: return other.prepend(this);
             default:
                 return throwUnsupportedOperation(operator, other);
         }
@@ -50,5 +52,13 @@ public class NumberExpressionValue extends AbstractExpressionValue {
         format.setMinimumFractionDigits(0);
         format.setGroupingUsed(false);
         return format.format(value);
+    }
+
+    public BigDecimal bigDecimalValue() {
+        return value;
+    }
+
+    public boolean isEvaluated() {
+        return evaluated;
     }
 }
