@@ -21,6 +21,6 @@ public class DivisionExpression extends AbstractExpressionValue {
 
     @Override
     public String stringValue() {
-        return numerator.stringValue() + " / " + denominator.stringValue();
+        return numerator.stringValue() + "/" + denominator.stringValue();
     }
 }
