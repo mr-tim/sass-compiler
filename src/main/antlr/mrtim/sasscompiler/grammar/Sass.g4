@@ -8,7 +8,7 @@ COMMENT: COMMENT_START .*? COMMENT_END;
 LINE_COMMENT : '//' ~[\r\n]* NL? -> skip;
 DSTRING : '"' ('\\"' | ~'"')* '"';
 SSTRING : '\'' ('\\\'' | ~'\'')* '\'';
-URL : 'url(' ~[)]* ')';
+URL : 'url' LPAREN ~[)]* RPAREN;
 COMMA : ',';
 SEMICOLON: ';';
 LPAREN: '(';
@@ -23,6 +23,7 @@ COLON: ':';
 STAR: '*';
 BAR: '|';
 DOT: '.';
+AMPERSAND: '&';
 IMPORT_KW : '@import';
 MIXIN_KW: '@mixin';
 FUNCTION_KW: '@function';
@@ -33,20 +34,27 @@ EVEN_KW: 'even';
 ODD_KW: 'odd';
 PSEUDO_NOT_KW: ':not';
 
-DIMENSION : 'px' | 'pt' | 'em' | 'en' | 'ex';
-DIGITS: [0-9]+;
+fragment PX : 'px';
+fragment PT : 'pt';
+fragment EM : 'em';
+fragment EN : 'en';
+fragment EX : 'ex';
+
+fragment DIGITS: [0-9]+;
 PLUS: '+';
 MINUS: '-';
 DIVIDE: '/';
-IDENTIFIER: [&a-zA-Z][a-zA-Z0-9_-]*;
+
+fragment ID_CHARS: [a-zA-Z0-9_-];
+
+IDENTIFIER: [a-zA-Z] ID_CHARS*;
 VARIABLE: '$' IDENTIFIER;
 TILDE: '~';
 RARROW: '>';
 PIPE: '|';
 CARET: '^';
-HASH: '#';
 PERCENT: '%';
-ID_NAME: HASH IDENTIFIER;
+HASH_ID: '#' ID_CHARS+;
 CLASS_NAME: DOT IDENTIFIER;
 
 string: DSTRING | SSTRING;
@@ -67,7 +75,7 @@ include_statement : INCLUDE_KW IDENTIFIER parameter_list? SEMICOLON;
 
 parameter_def_list: LPAREN ( COMMENT? variable_def COMMENT? (COMMA COMMENT? variable_def COMMENT?)* )? RPAREN;
 
-parameter_list: LPAREN ( parameter (COMMA parameter)* )? RPAREN;
+parameter_list: '(' ( parameter (COMMA parameter)* )? ')';
 
 parameter: (IDENTIFIER | variable_def | value);
 
@@ -96,7 +104,7 @@ simple_selector: tag (simple_selector_element)*
 
 tag: IDENTIFIER;
 
-simple_selector_element: (ID_NAME | CLASS_NAME)
+simple_selector_element: (HASH_ID | CLASS_NAME | AMPERSAND)
                        | negated_selector
                        | pseudo_selector
                        | attribute_selector
@@ -122,7 +130,7 @@ pseudo_prefix: COLON COLON?;
 
 functional: IDENTIFIER LPAREN;
 
-binomial: integer IDENTIFIER (PLUS DIGITS)?;
+binomial: NUMBER IDENTIFIER (PLUS NUMBER)?;
 
 //attribute_selector: parser.cpp:517
 attribute_selector: LSQBRACKET type_selector ((TILDE | PIPE | STAR | CARET | DOLLAR)? EQUALS (string | IDENTIFIER))? RSQBRACKET;
@@ -162,17 +170,18 @@ expression: expression STAR expression      # MultiplyExpression
           | LPAREN expression RPAREN        # ParenExpression
           | LPAREN expression_list RPAREN   # ListExpression;  
 
-value : (VARIABLE | IDENTIFIER | string | number | dimension | percentage | URL | builtin_call);
+value : builtin_call | (VARIABLE | IDENTIFIER | DIMENSION | PERCENTAGE | NUMBER | URL ) | string | colour;
 
-number: integer;
+colour: HASH_ID;
 
-dimension: number DIMENSION;
+NUMBER : MINUS? DIGITS+ ('.' DIGITS+)?
+       | '.' DIGITS+;
 
-percentage: number PERCENT;
+DIMENSION: NUMBER (PX | PT | EM | EN | EX );
+
+PERCENTAGE: NUMBER '%';
 
 builtin_call: IDENTIFIER parameter_list;
-
-integer: (PLUS | MINUS)? DIGITS;
 
 ruleset: selector_list block_body;
 

@@ -21,6 +21,10 @@ public abstract class AbstractExpressionValue implements ExpressionValue {
         else if (other instanceof DivisionExpression) {
             return operateOnDivision(operator, (DivisionExpression) other);
         }
+        else if (other instanceof ColourExpressionValue) {
+            return operateOnColour(operator, (ColourExpressionValue) other);
+        }
+
         return throwUnsupportedOperation(operator, other);
     }
 
@@ -42,6 +46,10 @@ public abstract class AbstractExpressionValue implements ExpressionValue {
 
     protected ExpressionValue operateOnDivision(Operator operator, DivisionExpression other) {
         return operate(operator, other.evaluate());
+    }
+
+    protected ExpressionValue operateOnColour(Operator operator, ColourExpressionValue other) {
+        return throwUnsupportedOperation(operator, other);
     }
 
     protected ExpressionValue throwUnsupportedOperation(Operator operator, ExpressionValue other) {

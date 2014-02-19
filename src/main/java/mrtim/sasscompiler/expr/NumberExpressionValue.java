@@ -46,6 +46,12 @@ public class NumberExpressionValue extends AbstractExpressionValue {
     }
 
     @Override
+    protected ExpressionValue operateOnColour(Operator operator, ColourExpressionValue other) {
+        ColourExpressionValue o = new ColourExpressionValue(other.stringValue(), true);
+        return new StringExpressionValue(stringValue()+operator.operator()+o.stringValue());
+    }
+
+    @Override
     public String stringValue() {
         DecimalFormat format = new DecimalFormat();
         format.setMaximumFractionDigits(4);

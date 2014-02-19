@@ -309,23 +309,60 @@ public class Colors {
     };
 
     private static final Map<String, Color> COLORS_BY_NAME;
+    private static final Map<String, String> COLOR_NAMES_BY_HEX;
 
     static {
-        Map<String, Color> colorsByName = new HashMap<String, Color>();
+        Map<String, Color> colorsByName = new HashMap<>();
+        Map<String, String> colorNamesByHex = new HashMap<>();
 
         for (int i=0; i<colorNames.length; i++) {
-            colorsByName.put(colorNames[i], extractColor(i));
+            Color color = extractColor(i);
+            colorsByName.put(colorNames[i], color);
+            colorNamesByHex.put(color.asHex(), colorNames[i]);
         }
 
         COLORS_BY_NAME = ImmutableMap.copyOf(colorsByName);
+        COLOR_NAMES_BY_HEX = ImmutableMap.copyOf(colorNamesByHex);
     }
 
     private static Color extractColor(int i) {
         int offset = i*3;
-        return new Color("[COLOR TABLE]", 0, colorValues[offset], colorValues[offset+1], colorValues[offset+2]);
+        return new Color(colorValues[offset], colorValues[offset+1], colorValues[offset+2]);
+    }
+
+    public static Color resolve(String color) {
+        if (color.startsWith("#")) {
+            int r, g, b;
+            if (color.length() == 4) {
+                r = parseComponent(color.substring(1, 2));
+                g = parseComponent(color.substring(2, 3));
+                b = parseComponent(color.substring(3, 4));
+            }
+            else {
+                r = parseComponent(color.substring(1, 3));
+                g = parseComponent(color.substring(3, 5));
+                b = parseComponent(color.substring(5, 7));
+            }
+            return new Color(r, g, b);
+        }
+        else {
+            return fromName(color);
+        }
+    }
+
+    private static Integer parseComponent(String s) {
+        if (s.length() == 1) {
+            s = s+s;
+        }
+        return Integer.valueOf(s, 16);
     }
 
     public static Color fromName(String name) {
         return COLORS_BY_NAME.get(name);
     }
+
+    public static String colourName(Color color) {
+        return COLOR_NAMES_BY_HEX.get(color.asHex());
+    }
+
 }

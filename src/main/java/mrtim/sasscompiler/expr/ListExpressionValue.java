@@ -36,4 +36,8 @@ public class ListExpressionValue extends AbstractExpressionValue {
         newList.addAll(expressions.subList(1, expressions.size()));
         return new ListExpressionValue(newList);
     }
+
+    public List<ExpressionValue> expressions() {
+        return expressions;
+    }
 }
