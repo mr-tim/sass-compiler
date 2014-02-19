@@ -1,5 +1,6 @@
 package mrtim.sasscompiler;
 
+import mrtim.sasscompiler.builtins.Parameters;
 import mrtim.sasscompiler.expr.ColourExpressionValue;
 import mrtim.sasscompiler.expr.DimensionExpressionValue;
 import mrtim.sasscompiler.expr.DivisionExpression;
@@ -10,6 +11,7 @@ import mrtim.sasscompiler.expr.MultListExpressionValue;
 import mrtim.sasscompiler.expr.NumberExpressionValue;
 import mrtim.sasscompiler.expr.PercentageExpressionValue;
 import mrtim.sasscompiler.expr.StringExpressionValue;
+import mrtim.sasscompiler.grammar.SassParser;
 import mrtim.sasscompiler.grammar.SassParser.Builtin_callContext;
 import mrtim.sasscompiler.grammar.SassParser.DivideExpressionContext;
 import mrtim.sasscompiler.grammar.SassParser.ExpressionListContext;
@@ -142,12 +144,16 @@ public class ExpressionVisitor extends BaseVisitor<ExpressionValue> {
         else if (ctx.builtin_call() != null) {
             Builtin_callContext callContext = ctx.builtin_call();
             String function = callContext.IDENTIFIER().getText();
-            ExpressionValue params = visit(callContext.parameter_list());
-            return Builtins.call(function, (ListExpressionValue) params);
+            Parameters params = extractParameters(callContext.parameter_list());
+            return Builtins.call(function, params);
         }
         else {
             return new StringExpressionValue(ctx.getText());
         }
+    }
+
+    private Parameters extractParameters(Parameter_listContext parameter_listContext) {
+        return new ParameterExtractionVisitor(this).visit(parameter_listContext);
     }
 
     private ExpressionValue markAsEvaluated(ExpressionValue result) {
