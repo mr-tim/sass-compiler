@@ -37,8 +37,17 @@ public class Color {
         return alpha;
     }
 
+    public boolean hasAlpha() {
+        return alpha != 1.0;
+    }
+
     public String asHex() {
-        return "#" + hex(r) + hex(g) + hex(b);
+        if (!hasAlpha()) {
+            return "#" + hex(r) + hex(g) + hex(b);
+        }
+        else {
+            return String.format("rgba(%s, %s, %s, %s)", r, g, b, alpha);
+        }
     }
 
     private String hex(int value) {
@@ -69,12 +78,9 @@ public class Color {
     }
 
     public Color addToComponents(Operator operator, Color o) {
-        int scale = getScale(operator);
-        return new Color(truncate(r+scale*o.getR()), truncate(g+scale*o.getG()), truncate(b+scale*o.getB()));
-    }
-
-    private int getScale(Operator operator) {
-        return operator == Operator.SUBTRACT? -1 : 1;
+        int scale = operator == Operator.SUBTRACT ? -1 : 1;
+        double alpha = (hasAlpha() || o.hasAlpha())? truncateA(this.alpha+scale*o.getAlpha()) : 1.0;
+        return new Color(truncate(r+scale*o.getR()), truncate(g+scale*o.getG()), truncate(b+scale*o.getB()), alpha);
     }
 
     private int truncate(int i) {
@@ -85,6 +91,16 @@ public class Color {
             i = 255;
         }
         return i;
+    }
+
+    private double truncateA(double a) {
+        if (a < 0.0) {
+            a = 0.0;
+        }
+        else if (a > 1.0) {
+            a = 1.0;
+        }
+        return a;
     }
 
     public String toString() {

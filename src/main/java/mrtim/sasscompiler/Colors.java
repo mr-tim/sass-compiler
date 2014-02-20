@@ -331,6 +331,10 @@ public class Colors {
     }
 
     public static Color resolve(String color) {
+        return resolve(color, 1.0);
+    }
+
+    public static Color resolve(String color, double alpha) {
         if (color.startsWith("#")) {
             int r, g, b;
             if (color.length() == 4) {
@@ -343,10 +347,19 @@ public class Colors {
                 g = parseComponent(color.substring(3, 5));
                 b = parseComponent(color.substring(5, 7));
             }
-            return new Color(r, g, b);
+            return new Color(r, g, b, alpha);
+        }
+        else if (color.startsWith("rgba(")) {
+            String componentStr = color.substring(5, color.length()-1);
+            String[] components = componentStr.split(",\\s*");
+            return new Color(Integer.valueOf(components[0]), Integer.valueOf(components[1]), Integer.valueOf(components[2]), Double.valueOf(components[3]));
         }
         else {
-            return fromName(color);
+            Color c = fromName(color);
+            if (c == null) {
+                throw new IllegalArgumentException("Invalid color: " + color);
+            }
+            return new Color(c.getR(), c.getG(), c.getB(), alpha);
         }
     }
 
@@ -362,7 +375,12 @@ public class Colors {
     }
 
     public static String colourName(Color color) {
-        return COLOR_NAMES_BY_HEX.get(color.asHex());
+        if (!color.hasAlpha()) {
+            return COLOR_NAMES_BY_HEX.get(color.asHex());
+        }
+        else {
+            return null;
+        }
     }
 
 }

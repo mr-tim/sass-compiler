@@ -7,36 +7,42 @@ public class ColourExpressionValue extends AbstractExpressionValue {
 
     private final String original;
     private final boolean evaluate;
+    private final Color color;
 
     public ColourExpressionValue(String colour) {
         original = colour;
         evaluate = false;
+        this.color = Colors.resolve(original);
     }
 
     public ColourExpressionValue(String colour, boolean evaluate) {
         original = colour;
         this.evaluate = evaluate;
+        this.color = Colors.resolve(original);
+    }
+
+    public ColourExpressionValue(Color color) {
+        original = color.asHex();
+        evaluate = true;
+        this.color = color;
     }
 
     @Override
     protected ExpressionValue operateOnString(Operator operator, StringExpressionValue other) {
-        Color c = Colors.resolve(original);
-        return new StringExpressionValue(c.asHex()).operate(operator, other);
+        return new StringExpressionValue(color.asHex()).operate(operator, other);
     }
 
     @Override
     protected ExpressionValue operateOnNumber(Operator operator, NumberExpressionValue other) {
-        Color c = Colors.resolve(original);
-        c = c.addToComponents(operator, other.bigDecimalValue().intValue());
-        return new ColourExpressionValue(c.asHex(), true);
+        Color updatedColor = color.addToComponents(operator, other.bigDecimalValue().intValue());
+        return new ColourExpressionValue(updatedColor);
     }
 
     @Override
     protected ExpressionValue operateOnColour(Operator operator, ColourExpressionValue other) {
-        Color c = Colors.resolve(original);
         Color o = Colors.resolve(other.stringValue());
-        c = c.addToComponents(operator, o);
-        return new ColourExpressionValue(c.asHex(), true);
+        Color updatedColor = color.addToComponents(operator, o);
+        return new ColourExpressionValue(updatedColor);
     }
 
     @Override
@@ -50,7 +56,6 @@ public class ColourExpressionValue extends AbstractExpressionValue {
     }
 
     private String evaluateColour() {
-        Color color = Colors.resolve(original);
         String colourName = Colors.colourName(color);
         if (colourName != null) {
             return colourName;
