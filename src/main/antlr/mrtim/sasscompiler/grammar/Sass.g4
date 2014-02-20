@@ -87,7 +87,7 @@ variable_def: VARIABLE (COMMENT? COLON COMMENT? expression_list)?;
 //selector_schema: parser.cpp:309
 
 //selector_group: parser.cpp:336
-selector_list: selector_combination (COMMA selector_combination)*;
+selector_list: selector_combination (COMMA COMMA* selector_combination)* COMMA*;
 
 //selector_combination: parser.cpp:362
 selector_combination: simple_selector (selector_combinator selector_combination)*
