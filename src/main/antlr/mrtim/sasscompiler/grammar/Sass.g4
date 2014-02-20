@@ -77,7 +77,9 @@ parameter_def_list: LPAREN ( COMMENT? variable_def COMMENT? (COMMA COMMENT? vari
 
 parameter_list: '(' ( parameter (COMMA parameter)* )? ')';
 
-parameter: (IDENTIFIER | variable_def | value);
+parameter: (IDENTIFIER | named_parameter | value);
+
+named_parameter: VARIABLE COMMENT? COLON COMMENT? expression_list;
 
 variable_def: VARIABLE (COMMENT? COLON COMMENT? expression_list)?;
 

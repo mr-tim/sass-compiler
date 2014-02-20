@@ -24,9 +24,9 @@ public class ParameterExtractionVisitor extends SassBaseVisitor<Parameters> {
 
     @Override
     public Parameters visitParameter(@NotNull SassParser.ParameterContext ctx) {
-        if (ctx.variable_def() != null) {
+        if (ctx.named_parameter() != null) {
             //named parameter
-            params.setNamedParamValue(getParameterName(ctx), evaluateParameter(ctx.variable_def().expression_list()));
+            params.setNamedParamValue(getParameterName(ctx), evaluateParameter(ctx.named_parameter().expression_list()));
         }
         else {
             //positional parameter
@@ -36,7 +36,7 @@ public class ParameterExtractionVisitor extends SassBaseVisitor<Parameters> {
     }
 
     private String getParameterName(SassParser.ParameterContext ctx) {
-        return ctx.variable_def().VARIABLE().getText().substring(1);
+        return ctx.named_parameter().VARIABLE().getText().substring(1);
     }
 
     private String evaluateParameter(ParserRuleContext ctx) {
