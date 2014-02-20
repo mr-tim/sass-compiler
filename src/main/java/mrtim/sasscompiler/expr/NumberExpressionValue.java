@@ -52,6 +52,22 @@ public class NumberExpressionValue extends AbstractExpressionValue {
     }
 
     @Override
+    protected ExpressionValue operateOnPercentage(Operator operator, PercentageExpressionValue other) {
+        if (operator == Operator.ADD) {
+            return new PercentageExpressionValue(bigDecimalValue().add(other.bigDecimalValue()));
+        }
+        else if (operator == Operator.SUBTRACT) {
+            return new PercentageExpressionValue(bigDecimalValue().subtract(other.bigDecimalValue()));
+        }
+        else if (operator == Operator.MULTIPLY) {
+            return new PercentageExpressionValue(bigDecimalValue().multiply(other.bigDecimalValue()));
+        }
+        else {
+            return throwUnsupportedOperation(operator, other);
+        }
+    }
+
+    @Override
     public String stringValue() {
         DecimalFormat format = new DecimalFormat();
         format.setMaximumFractionDigits(4);

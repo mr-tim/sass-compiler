@@ -24,7 +24,9 @@ public abstract class AbstractExpressionValue implements ExpressionValue {
         else if (other instanceof ColourExpressionValue) {
             return operateOnColour(operator, (ColourExpressionValue) other);
         }
-
+        else if (other instanceof PercentageExpressionValue) {
+            return operateOnPercentage(operator, (PercentageExpressionValue) other);
+        }
         return throwUnsupportedOperation(operator, other);
     }
 
@@ -49,6 +51,10 @@ public abstract class AbstractExpressionValue implements ExpressionValue {
     }
 
     protected ExpressionValue operateOnColour(Operator operator, ColourExpressionValue other) {
+        return throwUnsupportedOperation(operator, other);
+    }
+
+    protected ExpressionValue operateOnPercentage(Operator operator, PercentageExpressionValue other) {
         return throwUnsupportedOperation(operator, other);
     }
 
