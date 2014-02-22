@@ -34,6 +34,7 @@ public class Context {
     private String entryPoint;
     private ParseTreeProperty<String> expandedSelectors = new ParseTreeProperty<>();
     private ParseTreeProperty<ExpressionValue> evaluatedExpressions = new ParseTreeProperty<>();
+    private ParseTreeProperty<MixinScopeInitialiser> mixinScopeInitialisers = new ParseTreeProperty<>();
 
     private Context(Builder builder) throws SassCompilationError {
         this.entryPoint = builder.entryPoint;
@@ -83,6 +84,7 @@ public class Context {
     public String compileFile() throws IOException {
         String result = null;
         ParseTree parsedSources = collectAndParseSources(resolveFromSearchPath(entryPoint));
+        preprocess(parsedSources);
         expandSources(parsedSources);
         outputCompiledSources(entryPoint, parsedSources);
         return result;
@@ -94,8 +96,12 @@ public class Context {
         return tree;
     }
 
+    private void preprocess(ParseTree parseTree) {
+        new MixinPreprocessVisitor(mixinScopeInitialisers).visit(parseTree);
+    }
+
     private void expandSources(ParseTree tree) {
-        new ExpansionVisitor(expandedSelectors, evaluatedExpressions).visit(tree);
+        new ExpansionVisitor(expandedSelectors, evaluatedExpressions, mixinScopeInitialisers).visit(tree);
     }
 
     private Sass_fileContext buildParseTree(File f) throws IOException {

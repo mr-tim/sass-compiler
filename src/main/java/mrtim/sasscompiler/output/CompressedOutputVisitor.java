@@ -54,22 +54,44 @@ public class CompressedOutputVisitor extends BaseVisitor<Void> {
     @Override
     public Void visitRuleset(SassParser.RulesetContext ctx) {
         int indentBefore = indent;
-        if (hasNonHoistable(ctx.block_body())) {
+        SassParser.Block_bodyContext blockBody = ctx.block_body();
+
+        if (hasNonHoistable(blockBody)) {
             newLine();
             buffer.append(expandedSelectors.get(ctx.selector_list()));
             buffer.append(" ");
             buffer.append("{");
             indent();
-            visitChildrenWhere(NON_HOISTABLE, ctx.block_body());
+            visitNonHoistableChildren(blockBody);
             buffer.append(" }");
         }
 
-        if (hasHoistable(ctx.block_body())) {
-            visitChildrenWhere(HOISTABLE, ctx.block_body());
-        }
+        visitHoistableChildren(blockBody);
 
         indent = indentBefore;
         return null;
+    }
+
+    private void visitNonHoistableChildren(ParserRuleContext parserRuleContext) {
+        for (ParseTree child: parserRuleContext.children) {
+            if (NON_HOISTABLE.apply(child)) {
+                visit(child);
+            }
+            else if (child instanceof SassParser.Block_bodyContext) {
+                visitNonHoistableChildren((SassParser.Block_bodyContext)child);
+            }
+        }
+    }
+
+    private void visitHoistableChildren(ParserRuleContext parserRuleContext) {
+        for (ParseTree child: parserRuleContext.children) {
+            if (HOISTABLE.apply(child)) {
+                visit(child);
+            }
+            else if (child instanceof SassParser.Block_bodyContext) {
+                visitHoistableChildren((SassParser.Block_bodyContext)child);
+            }
+        }
     }
 
     @Override

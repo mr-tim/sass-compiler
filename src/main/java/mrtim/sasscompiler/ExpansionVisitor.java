@@ -11,6 +11,7 @@ import mrtim.sasscompiler.grammar.SassParser.MultiExpressionListContext;
 import mrtim.sasscompiler.grammar.SassParser.Sass_fileContext;
 import mrtim.sasscompiler.grammar.SassParser.Selector_combinationContext;
 import mrtim.sasscompiler.grammar.SassParser.Variable_defContext;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
@@ -22,12 +23,15 @@ public class ExpansionVisitor extends SassBaseVisitor<Void> {
 
     private final ParseTreeProperty<String> expandedSelectors;
     private final ParseTreeProperty<ExpressionValue> evaluatedExpressions;
+    private ParseTreeProperty<MixinScopeInitialiser> mixinScopeInitialisers;
+
     private SelectorStack selectorStack = new SelectorStack();
     private Stack<Scope> scopeStack = new Stack<>();
 
-    public ExpansionVisitor(ParseTreeProperty<String> expandedSelectors, ParseTreeProperty<ExpressionValue> evaluatedExpressions) {
+    public ExpansionVisitor(ParseTreeProperty<String> expandedSelectors, ParseTreeProperty<ExpressionValue> evaluatedExpressions, ParseTreeProperty<MixinScopeInitialiser> mixinScopeInitialisers) {
         this.expandedSelectors = expandedSelectors;
         this.evaluatedExpressions = evaluatedExpressions;
+        this.mixinScopeInitialisers = mixinScopeInitialisers;
     }
 
     @Override
@@ -37,7 +41,21 @@ public class ExpansionVisitor extends SassBaseVisitor<Void> {
         return null;
     }
 
-    private void visitChildrenWithScope(Sass_fileContext ctx, Scope scope) {
+    @Override
+    public Void visitBlock_body(@NotNull SassParser.Block_bodyContext ctx) {
+        MixinScopeInitialiser scopeInitialiser = mixinScopeInitialisers.get(ctx);
+        Scope scope = currentScope();
+        if (scopeInitialiser != null) {
+            scope = new Scope(scope);
+            scopeInitialiser.initialiseScope(scope);
+
+        }
+        visitChildrenWithScope(ctx, scope);
+
+        return null;
+    }
+
+    private void visitChildrenWithScope(ParserRuleContext ctx, Scope scope) {
         scopeStack.push(scope);
         visitChildren(ctx);
         scopeStack.pop();
