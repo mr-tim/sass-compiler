@@ -24,6 +24,18 @@ public class Scope {
     }
 
     public void define(String name, ExpressionValue value) {
+        if (locals.containsKey(name)) {
+            locals.put(name, value);
+        }
+        else if (parentScope != null && parentScope.isDefined(name)) {
+            parentScope.define(name, value);
+        }
+        else {
+            locals.put(name, value);
+        }
+    }
+
+    public void defineLocally(String name, ExpressionValue value) {
         locals.put(name, value);
     }
 

@@ -47,7 +47,7 @@ public class MixinScopeInitialiser {
         }
 
         for (Map.Entry<String, ExpressionValue> e: evaluatedParams.entrySet()) {
-            scope.define(e.getKey(), e.getValue());
+            scope.defineLocally(e.getKey(), e.getValue());
         }
     }
 
